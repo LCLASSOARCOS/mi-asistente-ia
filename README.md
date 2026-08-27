@@ -27,7 +27,7 @@ Esto inicia la página web. Abre la dirección que muestre la terminal, normalme
 ```text
 mi-asistente-ia/
 ├── frontend/       # Página web y experiencia de chat
-├── server.js       # Servidor y conexión segura con Gemini
+├── backend/        # Servidor, rutas y conexión segura con Gemini
 ├── .env            # Clave local (nunca se publica)
 ├── .env.example    # Modelo de configuración sin claves
 └── docs/           # Plan y decisiones del proyecto

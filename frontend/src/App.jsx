@@ -1,6 +1,8 @@
 import { useState } from "react";
 import "./App.css";
 
+const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
 function App() {
   const [pregunta, setPregunta] = useState("");
   const [mensajes, setMensajes] = useState([]);
@@ -25,7 +27,7 @@ function App() {
     setCargando(true);
 
     try {
-      const response = await fetch("http://localhost:3000/api/preguntar", {
+      const response = await fetch(`${apiUrl}/api/preguntar`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -90,7 +92,7 @@ function App() {
       <main className="chat">
         {mensajes.length === 0 && (
           <div className="bienvenida">
-            <h2>¿En qué puedo ayudarte?</h2>
+            <h2>¿En qué puedo ayudarte hoy Crack?</h2>
             <p>
               Pregúntame sobre gestión pública, programación, proyectos,
               tecnología o cualquier otro tema.
