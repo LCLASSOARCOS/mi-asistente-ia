@@ -1,11 +1,14 @@
 {
   "name": "mi-asistente-ia",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Asistente personal con React, Node.js y Gemini.",
+  "main": "server.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "node --watch server.js",
+    "start": "node server.js",
+    "frontend": "npm run dev --prefix frontend",
+    "frontend:build": "npm run build --prefix frontend"
   },
   "keywords": [],
   "author": "",
