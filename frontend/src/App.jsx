@@ -21,6 +21,9 @@ function App() {
   const [mensajes, setMensajes] = useState(recuperarMensajes);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState("");
+  const [documentos, setDocumentos] = useState([]);
+  const [subiendoDocumento, setSubiendoDocumento] = useState(false);
+  const [errorDocumento, setErrorDocumento] = useState("");
   const finalDelChat = useRef(null);
 
   useEffect(() => {
@@ -30,6 +33,50 @@ function App() {
   useEffect(() => {
     finalDelChat.current?.scrollIntoView({ behavior: "smooth" });
   }, [mensajes, cargando, error]);
+
+  useEffect(() => {
+    cargarDocumentos();
+  }, []);
+
+  const cargarDocumentos = async () => {
+    try {
+      const response = await fetch(`${apiUrl}/api/documentos`);
+      const data = await response.json();
+
+      if (!response.ok) throw new Error(data.error);
+      setDocumentos(data.documentos);
+    } catch {
+      setErrorDocumento("No pude cargar la biblioteca de documentos.");
+    }
+  };
+
+  const cargarDocumento = async (evento) => {
+    const archivo = evento.target.files?.[0];
+    evento.target.value = "";
+
+    if (!archivo) return;
+
+    setErrorDocumento("");
+    setSubiendoDocumento(true);
+
+    try {
+      const formulario = new FormData();
+      formulario.append("archivo", archivo);
+
+      const response = await fetch(`${apiUrl}/api/documentos`, {
+        method: "POST",
+        body: formulario,
+      });
+      const data = await response.json();
+
+      if (!response.ok) throw new Error(data.error);
+      setDocumentos((documentosActuales) => [data.documento, ...documentosActuales]);
+    } catch (error) {
+      setErrorDocumento(error.message || "No pude cargar el documento.");
+    } finally {
+      setSubiendoDocumento(false);
+    }
+  };
 
   const preguntarIA = async () => {
     if (!pregunta.trim() || cargando) return;
@@ -105,14 +152,48 @@ function App() {
           <p>Asistente personal</p>
         </div>
 
-        <button
-          className="boton-limpiar"
-          onClick={limpiarChat}
-          disabled={mensajes.length === 0}
-        >
-          Limpiar
-        </button>
+        <div className="acciones-header">
+          <label className="boton-documento">
+            {subiendoDocumento ? "Cargando..." : "Añadir documento"}
+            <input
+              type="file"
+              accept=".pdf,.txt,.md,text/plain,text/markdown,application/pdf"
+              onChange={cargarDocumento}
+              disabled={subiendoDocumento}
+            />
+          </label>
+          <button
+            className="boton-limpiar"
+            onClick={limpiarChat}
+            disabled={mensajes.length === 0}
+          >
+            Limpiar
+          </button>
+        </div>
       </header>
+
+      <section className="biblioteca" aria-label="Biblioteca de documentos">
+        <div>
+          <strong>Biblioteca</strong>
+          <span>
+            {documentos.length === 0
+              ? " Aún no has cargado documentos."
+              : ` ${documentos.length} documento${documentos.length === 1 ? "" : "s"} cargado${documentos.length === 1 ? "" : "s"}.`}
+          </span>
+        </div>
+        {documentos.length > 0 && (
+          <ul className="lista-documentos">
+            {documentos.map((documento) => (
+              <li key={documento.id}>
+                <span>{documento.nombre}</span>
+                <small>{documento.tipo}</small>
+              </li>
+            ))}
+          </ul>
+        )}
+        <p>Los documentos se guardan solo en este equipo y todavía no se usan para responder.</p>
+        {errorDocumento && <p className="error-documento" role="alert">{errorDocumento}</p>}
+      </section>
 
       <main className="chat">
         {mensajes.length === 0 && (

@@ -2,6 +2,7 @@ import cors from "cors";
 import express from "express";
 import { config } from "./config/env.js";
 import { chatRouter } from "./routes/chat-routes.js";
+import { documentosRouter } from "./routes/documentos-routes.js";
 
 export const app = express();
 
@@ -17,3 +18,4 @@ app.get("/api/estado", (req, res) => {
 });
 
 app.use("/api", chatRouter);
+app.use("/api/documentos", documentosRouter);

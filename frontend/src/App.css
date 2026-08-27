@@ -42,12 +42,37 @@ textarea {
   color: #777;
 }
 
+.acciones-header {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
 .boton-limpiar {
   border: 1px solid #ccc;
   background: white;
   padding: 8px 14px;
   border-radius: 8px;
   cursor: pointer;
+}
+
+.boton-documento {
+  border: 1px solid #222;
+  background: #222;
+  color: white;
+  padding: 9px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.boton-documento input {
+  display: none;
+}
+
+.boton-documento:has(input:disabled) {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .boton-limpiar:disabled {
@@ -59,6 +84,55 @@ textarea {
   flex: 1;
   overflow-y: auto;
   padding: 30px 24px;
+}
+
+.biblioteca {
+  padding: 12px 24px;
+  border-bottom: 1px solid #ddd;
+  background: #fafafa;
+  color: #555;
+  font-size: 14px;
+}
+
+.biblioteca > p {
+  margin: 6px 0 0;
+  color: #777;
+  font-size: 12px;
+}
+
+.lista-documentos {
+  display: flex;
+  gap: 8px;
+  margin: 10px 0 0;
+  padding: 0;
+  overflow-x: auto;
+  list-style: none;
+}
+
+.lista-documentos li {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  max-width: 230px;
+  padding: 5px 8px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: white;
+}
+
+.lista-documentos span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lista-documentos small {
+  color: #666;
+  font-weight: 700;
+}
+
+.error-documento {
+  color: #9d1c13 !important;
 }
 
 .bienvenida {
@@ -253,6 +327,24 @@ textarea {
 @media (max-width: 600px) {
   .header {
     padding: 16px;
+  }
+
+  .header h1 {
+    font-size: 18px;
+  }
+
+  .acciones-header {
+    gap: 6px;
+  }
+
+  .boton-documento,
+  .boton-limpiar {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+
+  .biblioteca {
+    padding: 10px 16px;
   }
 
   .chat {

@@ -11,9 +11,8 @@
 
 ## Siguientes módulos
 
-1. **Mejorar el chat:** conservar conversaciones, mostrar errores claros y permitir enviar mensajes con comodidad.
-2. **Documentos:** cargar archivos y responder con fuentes verificables.
-3. **Memoria:** guardar preferencias e información útil autorizada por el usuario.
-4. **Acciones:** conectar tareas y automatizaciones bajo control del usuario.
+1. **Documentos:** cargar archivos PDF, TXT o Markdown en una biblioteca local y responder con fuentes verificables.
+2. **Memoria:** guardar preferencias e información útil autorizada por el usuario.
+3. **Acciones:** conectar tareas y automatizaciones bajo control del usuario.
 
 Cada módulo se añadirá sin exponer claves ni mezclar responsabilidades.

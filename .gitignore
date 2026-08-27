@@ -19,3 +19,7 @@ service-account*.json
 .DS_Store
 .vscode/
 .idea/
+
+# Documentos privados cargados en el asistente
+data/documentos/
+data/documentos.json
