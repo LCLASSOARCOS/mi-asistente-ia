@@ -5,7 +5,8 @@
 - Chat web con React.
 - Servidor Node.js.
 - Respuestas generadas con Gemini.
-- Historial de la conversación durante la sesión.
+- Historial de la conversación guardado en este navegador.
+- Envío cómodo: Enter envía y Shift + Enter crea una nueva línea.
 - Configuración de claves local y protegida.
 
 ## Siguientes módulos

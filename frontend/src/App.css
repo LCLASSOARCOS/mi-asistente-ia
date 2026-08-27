@@ -9,7 +9,8 @@ body {
 }
 
 button,
-input {
+input,
+textarea {
   font: inherit;
 }
 
@@ -47,6 +48,11 @@ input {
   padding: 8px 14px;
   border-radius: 8px;
   cursor: pointer;
+}
+
+.boton-limpiar:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .chat {
@@ -106,17 +112,21 @@ input {
   gap: 10px;
   padding: 16px 24px;
   border-top: 1px solid #ddd;
+  padding-bottom: 8px;
 }
 
-.entrada input {
+.entrada textarea {
   flex: 1;
   padding: 13px 15px;
   border: 1px solid #ccc;
   border-radius: 10px;
   outline: none;
+  resize: vertical;
+  min-height: 48px;
+  max-height: 150px;
 }
 
-.entrada input:focus {
+.entrada textarea:focus {
   border-color: #888;
 }
 
@@ -134,6 +144,24 @@ input {
   cursor: not-allowed;
 }
 
+.ayuda-entrada {
+  margin: 0;
+  padding: 0 24px 12px;
+  color: #777;
+  font-size: 12px;
+}
+
+.error-chat {
+  max-width: 75%;
+  margin: 0 0 20px;
+  padding: 12px 16px;
+  border: 1px solid #d92d20;
+  border-radius: 12px;
+  background: #fff1f0;
+  color: #9d1c13;
+  line-height: 1.5;
+}
+
 @media (max-width: 600px) {
   .header {
     padding: 16px;
@@ -147,7 +175,15 @@ input {
     padding: 12px 16px;
   }
 
+  .ayuda-entrada {
+    padding: 0 16px 10px;
+  }
+
   .mensaje {
+    max-width: 90%;
+  }
+
+  .error-chat {
     max-width: 90%;
   }
 }
