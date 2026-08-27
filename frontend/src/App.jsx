@@ -24,6 +24,7 @@ function App() {
   const [documentos, setDocumentos] = useState([]);
   const [subiendoDocumento, setSubiendoDocumento] = useState(false);
   const [errorDocumento, setErrorDocumento] = useState("");
+  const [usarDocumentos, setUsarDocumentos] = useState(false);
   const finalDelChat = useRef(null);
 
   useEffect(() => {
@@ -107,6 +108,7 @@ function App() {
         body: JSON.stringify({
           pregunta: preguntaActual,
           historial: historialActual,
+          usarDocumentos,
         }),
       });
 
@@ -121,6 +123,7 @@ function App() {
         {
           tipo: "ia",
           texto: data.respuesta,
+          fuentes: data.fuentes || [],
         },
       ]);
     } catch (error) {
@@ -191,7 +194,21 @@ function App() {
             ))}
           </ul>
         )}
-        <p>Los documentos se guardan solo en este equipo y todavía no se usan para responder.</p>
+        <p>Los documentos se guardan solo en este equipo.</p>
+        <label className="usar-documentos">
+          <input
+            type="checkbox"
+            checked={usarDocumentos}
+            onChange={(evento) => setUsarDocumentos(evento.target.checked)}
+            disabled={documentos.length === 0}
+          />
+          Usar documentos en las respuestas
+        </label>
+        {usarDocumentos && (
+          <p className="aviso-privacidad">
+            Se enviarán a Gemini solo fragmentos relacionados con tu pregunta.
+          </p>
+        )}
         {errorDocumento && <p className="error-documento" role="alert">{errorDocumento}</p>}
       </section>
 
@@ -219,9 +236,21 @@ function App() {
 
             <div className="texto">
               {mensaje.tipo === "ia" ? (
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {mensaje.texto}
-                </ReactMarkdown>
+                <>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {mensaje.texto}
+                  </ReactMarkdown>
+                  {mensaje.fuentes?.length > 0 && (
+                    <div className="fuentes">
+                      <strong>Fuentes consultadas</strong>
+                      <ul>
+                        {mensaje.fuentes.map((fuente) => (
+                          <li key={fuente}>{fuente}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </>
               ) : (
                 mensaje.texto
               )}

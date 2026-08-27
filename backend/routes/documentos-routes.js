@@ -5,7 +5,7 @@ import { Router } from "express";
 import {
   documentosDirectory,
   guardarDocumento,
-  listarDocumentos,
+  listarDocumentosPublicos,
 } from "../services/documentos-service.js";
 
 const extensionesPermitidas = new Set([".pdf", ".txt", ".md"]);
@@ -36,7 +36,7 @@ export const documentosRouter = Router();
 
 documentosRouter.get("/", async (req, res, next) => {
   try {
-    const documentos = await listarDocumentos();
+    const documentos = await listarDocumentosPublicos();
     res.json({ documentos });
   } catch (error) {
     next(error);
