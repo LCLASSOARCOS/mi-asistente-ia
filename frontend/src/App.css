@@ -97,6 +97,94 @@ textarea {
   border-radius: 14px;
   line-height: 1.5;
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+
+.texto > :first-child {
+  margin-top: 0;
+}
+
+.texto > :last-child {
+  margin-bottom: 0;
+}
+
+.texto p,
+.texto ul,
+.texto ol,
+.texto blockquote {
+  margin: 0 0 12px;
+}
+
+.texto ul,
+.texto ol {
+  padding-left: 22px;
+}
+
+.texto h1,
+.texto h2,
+.texto h3 {
+  margin: 0 0 10px;
+  line-height: 1.25;
+}
+
+.texto h1 {
+  font-size: 20px;
+}
+
+.texto h2 {
+  font-size: 18px;
+}
+
+.texto h3 {
+  font-size: 16px;
+}
+
+.texto blockquote {
+  padding-left: 12px;
+  border-left: 3px solid #b8b8b8;
+  color: #555;
+}
+
+.texto code {
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.08);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.9em;
+}
+
+.texto pre {
+  margin: 0 0 12px;
+  padding: 12px;
+  overflow-x: auto;
+  border-radius: 8px;
+  background: #242424;
+  color: #f5f5f5;
+  white-space: pre;
+}
+
+.texto pre code {
+  padding: 0;
+  background: transparent;
+  color: inherit;
+}
+
+.texto table {
+  width: 100%;
+  margin: 0 0 12px;
+  border-collapse: collapse;
+  font-size: 0.9em;
+}
+
+.texto th,
+.texto td {
+  padding: 7px;
+  border: 1px solid #cfcfcf;
+}
+
+.texto th {
+  background: rgba(0, 0, 0, 0.06);
 }
 
 .mensaje-usuario .texto {

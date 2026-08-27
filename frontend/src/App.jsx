@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import "./App.css";
 
 const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
@@ -134,7 +136,15 @@ function App() {
               {mensaje.tipo === "usuario" ? "Tú" : "🤖 Asistente"}
             </div>
 
-            <div className="texto">{mensaje.texto}</div>
+            <div className="texto">
+              {mensaje.tipo === "ia" ? (
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {mensaje.texto}
+                </ReactMarkdown>
+              ) : (
+                mensaje.texto
+              )}
+            </div>
           </div>
         ))}
 
