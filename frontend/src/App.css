@@ -1,0 +1,153 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f5f5f5;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.app {
+  width: 100%;
+  max-width: 900px;
+  height: 100vh;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  background: white;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #ddd;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.header p {
+  margin: 5px 0 0;
+  color: #777;
+}
+
+.boton-limpiar {
+  border: 1px solid #ccc;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.chat {
+  flex: 1;
+  overflow-y: auto;
+  padding: 30px 24px;
+}
+
+.bienvenida {
+  text-align: center;
+  margin-top: 120px;
+  color: #555;
+}
+
+.bienvenida h2 {
+  color: #222;
+}
+
+.mensaje {
+  max-width: 75%;
+  margin-bottom: 20px;
+}
+
+.mensaje-usuario {
+  margin-left: auto;
+  text-align: right;
+}
+
+.mensaje-ia {
+  margin-right: auto;
+}
+
+.nombre {
+  font-size: 13px;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+.texto {
+  display: inline-block;
+  padding: 12px 16px;
+  border-radius: 14px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.mensaje-usuario .texto {
+  background: #e8f0fe;
+}
+
+.mensaje-ia .texto {
+  background: #f0f0f0;
+}
+
+.entrada {
+  display: flex;
+  gap: 10px;
+  padding: 16px 24px;
+  border-top: 1px solid #ddd;
+}
+
+.entrada input {
+  flex: 1;
+  padding: 13px 15px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  outline: none;
+}
+
+.entrada input:focus {
+  border-color: #888;
+}
+
+.entrada button {
+  padding: 13px 20px;
+  border: none;
+  border-radius: 10px;
+  background: #222;
+  color: white;
+  cursor: pointer;
+}
+
+.entrada button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+  .header {
+    padding: 16px;
+  }
+
+  .chat {
+    padding: 20px 16px;
+  }
+
+  .entrada {
+    padding: 12px 16px;
+  }
+
+  .mensaje {
+    max-width: 90%;
+  }
+}
