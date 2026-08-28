@@ -1,3 +1,4 @@
+import { construirPrompt } from "../prompts/assistant.prompt.js";
 import { GoogleGenAI } from "@google/genai";
 import { config } from "../config/env.js";
 import { buscarFragmentosRelevantes } from "./documentos-service.js";
@@ -26,22 +27,15 @@ export async function responderPregunta(pregunta, historial = [], usarDocumentos
           .join("\n\n")}`
       : "";
 
-  const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: `
-Mantén el contexto de la conversación y responde teniendo en cuenta
-los mensajes anteriores.
+  const prompt = construirPrompt({
+  conversacion,
+  contextoDocumental,
+});
 
-Conversación:
-
-${conversacion.join("\n\n")}
-
-${contextoDocumental}
-
-Responde a la última pregunta del usuario de forma clara y útil.
-Cuando uses información de los documentos, indica el nombre del documento entre corchetes.
-`,
-  });
+const response = await ai.models.generateContent({
+  model: "gemini-2.5-flash",
+  contents: prompt,
+});
 
   return { respuesta: response.text, fuentes };
 }
