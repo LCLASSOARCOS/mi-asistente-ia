@@ -1,0 +1,96 @@
+.app {
+  display: grid;
+  grid-template-columns: var(--ancho-sidebar) minmax(0, 1fr);
+  /* La fila se fija a la altura del contenedor. Sin esto, la fila
+     implicita se dimensiona por su contenido: la conversacion la
+     estira y el compositor queda fuera de la pantalla. */
+  grid-template-rows: minmax(0, 1fr);
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.principal {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: 100%;
+  background: var(--bg);
+}
+
+/* --- Barra superior --- */
+
+.barra {
+  display: flex;
+  align-items: center;
+  gap: var(--e3);
+  flex-shrink: 0;
+  padding: var(--e3) var(--e5);
+  border-bottom: 1px solid var(--borde-suave);
+  background: color-mix(in srgb, var(--bg) 80%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.menu {
+  display: none;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--borde);
+  border-radius: var(--r-sm);
+  background: var(--bg-panel);
+  color: var(--texto-suave);
+}
+
+.menu:hover {
+  background: var(--bg-hover);
+  color: var(--texto);
+}
+
+.barraTitulo {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--texto-suave);
+}
+
+.barraEtiqueta {
+  margin-left: auto;
+  padding: 2px var(--e3);
+  border: 1px solid var(--acento-borde);
+  border-radius: var(--r-full);
+  background: var(--acento-tenue);
+  font-size: 11.5px;
+  color: var(--acento-claro);
+}
+
+/* --- Velo del cajon en movil --- */
+
+.velo {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  border: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(2px);
+  animation: fundido var(--t-media) both;
+}
+
+@keyframes fundido {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (max-width: 900px) {
+  .app {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .menu,
+  .velo {
+    display: grid;
+  }
+
+  .barra {
+    padding: var(--e3) var(--e4);
+  }
+}

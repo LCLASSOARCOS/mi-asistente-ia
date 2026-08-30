@@ -1,0 +1,104 @@
+.scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+
+.columna {
+  width: 100%;
+  max-width: var(--ancho-lectura);
+  margin: 0 auto;
+  padding: var(--e6) var(--e5) var(--e4);
+}
+
+/* --- Estado vacio --- */
+
+.bienvenida {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: var(--e7) 0 var(--e6);
+}
+
+.marca {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin-bottom: var(--e5);
+  border: 1px solid var(--acento-borde);
+  border-radius: var(--r-lg);
+  background: var(--acento-tenue);
+  color: var(--acento-claro);
+}
+
+.bienvenida h2 {
+  margin: 0 0 var(--e2);
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  background: linear-gradient(180deg, #ffffff 0%, #a6b0c0 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.bienvenida > p {
+  max-width: 46ch;
+  margin: 0 0 var(--e6);
+  color: var(--texto-suave);
+}
+
+.sugerencias {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--e3);
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .sugerencias {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sugerencia {
+  padding: var(--e3) var(--e4);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-md);
+  background: var(--bg-panel);
+  color: var(--texto-suave);
+  font-size: 13.5px;
+  line-height: 1.45;
+  text-align: left;
+  transition: border-color var(--t-rapida), background var(--t-rapida),
+    color var(--t-rapida), transform var(--t-rapida);
+}
+
+.sugerencia:hover {
+  border-color: var(--acento-borde);
+  background: var(--bg-elevado);
+  color: var(--texto);
+  transform: translateY(-1px);
+}
+
+/* --- Error --- */
+
+.error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--e3);
+  padding: var(--e3) var(--e4);
+  border: 1px solid var(--error-borde);
+  border-radius: var(--r-md);
+  background: var(--error-tenue);
+  color: var(--error);
+  font-size: 14px;
+}
+
+.error svg {
+  flex-shrink: 0;
+  margin-top: 3px;
+}

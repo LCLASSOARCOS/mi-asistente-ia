@@ -1,483 +1,114 @@
-import { useEffect, useRef, useState } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import "./App.css";
+import { useState } from "react";
+import { Chat } from "./components/Chat.jsx";
+import { Compositor } from "./components/Compositor.jsx";
+import { Sidebar } from "./components/Sidebar.jsx";
+import { IconoMenu } from "./components/Iconos.jsx";
+import { useChat } from "./hooks/useChat.js";
+import { useDocumentos } from "./hooks/useDocumentos.js";
+import { useEstadoSistema } from "./hooks/useEstadoSistema.js";
+import estilos from "./App.module.css";
 
-const apiUrl =
-  import.meta.env.VITE_API_URL || "http://localhost:3000";
+const CLAVE_MODELO = "mi-asistente-ia:modelo";
 
-const chatStorageKey = "mi-asistente-ia:mensajes";
-const modeloStorageKey = "mi-asistente-ia:modelo";
-
-function recuperarMensajes() {
-  try {
-    const mensajesGuardados = JSON.parse(
-      localStorage.getItem(chatStorageKey)
-    );
-
-    return Array.isArray(mensajesGuardados)
-      ? mensajesGuardados
-      : [];
-  } catch {
-    return [];
-  }
-}
-
-function recuperarModelo() {
-  const modeloGuardado = localStorage.getItem(modeloStorageKey);
-
-  return modeloGuardado === "claude"
-    ? "claude"
-    : "gemini";
-}
-
-function nombreModelo(modelo) {
-  if (modelo === "claude") {
-    return "Claude";
-  }
-
-  return "Gemini";
-}
-
-function App() {
+/**
+ * App solo COMPONE. No hace fetch, no habla con localStorage y no
+ * contiene logica de negocio: eso vive en los hooks y en api/cliente.
+ * Cuando lleguen las Fases 11-13 (tareas, monitores, notificaciones)
+ * se anaden vistas aqui sin que este archivo crezca sin control.
+ */
+export default function App() {
   const [pregunta, setPregunta] = useState("");
-  const [mensajes, setMensajes] = useState(recuperarMensajes);
-  const [cargando, setCargando] = useState(false);
-  const [error, setError] = useState("");
-
-  const [modelo, setModelo] = useState(recuperarModelo);
-
-  const [documentos, setDocumentos] = useState([]);
-  const [subiendoDocumento, setSubiendoDocumento] = useState(false);
-  const [errorDocumento, setErrorDocumento] = useState("");
   const [usarDocumentos, setUsarDocumentos] = useState(false);
+  const [menuAbierto, setMenuAbierto] = useState(false);
 
-  const finalDelChat = useRef(null);
+  const [modelo, setModelo] = useState(
+    () => localStorage.getItem(CLAVE_MODELO) || "gemini"
+  );
 
-  useEffect(() => {
-    localStorage.setItem(
-      chatStorageKey,
-      JSON.stringify(mensajes)
-    );
-  }, [mensajes]);
+  const { mensajes, cargando, error, enviar, limpiar } = useChat();
+  const documentos = useDocumentos();
+  const { contexto, modelos, enLinea } = useEstadoSistema();
 
-  useEffect(() => {
-    localStorage.setItem(modeloStorageKey, modelo);
-  }, [modelo]);
-
-  useEffect(() => {
-    finalDelChat.current?.scrollIntoView({
-      behavior: "smooth",
-    });
-  }, [mensajes, cargando, error]);
-
-  useEffect(() => {
-    cargarDocumentos();
-  }, []);
-
-  const cargarDocumentos = async () => {
-    try {
-      const response = await fetch(
-        `${apiUrl}/api/documentos`
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error);
-      }
-
-      setDocumentos(data.documentos);
-    } catch {
-      setErrorDocumento(
-        "No pude cargar la biblioteca de documentos."
-      );
-    }
+  const cambiarModelo = (nuevo) => {
+    setModelo(nuevo);
+    localStorage.setItem(CLAVE_MODELO, nuevo);
   };
 
-  const cargarDocumento = async (evento) => {
-    const archivo = evento.target.files?.[0];
-
-    evento.target.value = "";
-
-    if (!archivo) return;
-
-    setErrorDocumento("");
-    setSubiendoDocumento(true);
-
-    try {
-      const formulario = new FormData();
-
-      formulario.append("archivo", archivo);
-
-      const response = await fetch(
-        `${apiUrl}/api/documentos`,
-        {
-          method: "POST",
-          body: formulario,
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error);
-      }
-
-      setDocumentos((documentosActuales) => [
-        data.documento,
-        ...documentosActuales,
-      ]);
-    } catch (error) {
-      setErrorDocumento(
-        error.message || "No pude cargar el documento."
-      );
-    } finally {
-      setSubiendoDocumento(false);
-    }
-  };
-
-  const preguntarIA = async () => {
-    if (!pregunta.trim() || cargando) return;
-
-    const preguntaActual = pregunta;
-    const historialActual = [...mensajes];
-
-    setError("");
-
-    setMensajes((mensajesAnteriores) => [
-      ...mensajesAnteriores,
-      {
-        tipo: "usuario",
-        texto: preguntaActual,
-      },
-    ]);
+  const enviarPregunta = (texto = pregunta) => {
+    if (!texto.trim() || cargando) return;
 
     setPregunta("");
-    setCargando(true);
-
-    try {
-      const response = await fetch(
-        `${apiUrl}/api/preguntar`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            pregunta: preguntaActual,
-            historial: historialActual,
-            usarDocumentos,
-            modelo,
-          }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          data.error ||
-            "El servidor respondió con un error."
-        );
-      }
-
-      setMensajes((mensajesAnteriores) => [
-        ...mensajesAnteriores,
-        {
-          tipo: "ia",
-          texto: data.respuesta,
-          fuentes: data.fuentes || [],
-          fuentesWeb: data.fuentesWeb || [],
-          modelo: data.modelo || modelo,
-        },
-      ]);
-    } catch (error) {
-      console.error(error);
-
-      setError(
-        error.message ||
-          "No pude comunicarme con el servidor."
-      );
-    } finally {
-      setCargando(false);
-    }
+    enviar(texto, { modelo, usarDocumentos });
   };
 
-  const manejarTecla = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      preguntarIA();
-    }
-  };
-
-  const limpiarChat = () => {
-    setMensajes([]);
-    setError("");
-    localStorage.removeItem(chatStorageKey);
-  };
+  const modeloActual = modelos.find((opcion) => opcion.id === modelo);
 
   return (
-    <div className="app">
-      <header className="header">
-        <div>
-          <h1>🤖 Mi Asistente IA</h1>
-          <p>Asistente personal</p>
-        </div>
+    <div className={estilos.app}>
+      <Sidebar
+        abierto={menuAbierto}
+        onCerrar={() => setMenuAbierto(false)}
+        modelo={modelo}
+        onCambiarModelo={cambiarModelo}
+        modelos={modelos}
+        documentos={documentos.documentos}
+        usarDocumentos={usarDocumentos}
+        onCambiarUsarDocumentos={setUsarDocumentos}
+        onSubirDocumento={documentos.subir}
+        subiendoDocumento={documentos.subiendo}
+        errorDocumento={documentos.error}
+        contexto={contexto}
+        enLinea={enLinea}
+        onLimpiar={limpiar}
+        puedeLimpiar={mensajes.length > 0}
+      />
 
-        <div className="acciones-header">
-          <label className="boton-documento">
-            {subiendoDocumento
-              ? "Cargando..."
-              : "Añadir documento"}
+      {menuAbierto && (
+        <button
+          type="button"
+          className={estilos.velo}
+          onClick={() => setMenuAbierto(false)}
+          aria-label="Cerrar menú"
+        />
+      )}
 
-            <input
-              type="file"
-              accept=".pdf,.txt,.md,text/plain,text/markdown,application/pdf"
-              onChange={cargarDocumento}
-              disabled={subiendoDocumento}
-            />
-          </label>
-
+      <main className={estilos.principal}>
+        <header className={estilos.barra}>
           <button
-            className="boton-limpiar"
-            onClick={limpiarChat}
-            disabled={mensajes.length === 0}
+            type="button"
+            className={estilos.menu}
+            onClick={() => setMenuAbierto(true)}
+            aria-label="Abrir menú"
           >
-            Limpiar
+            <IconoMenu tamano={18} />
           </button>
-        </div>
-      </header>
 
-      <section
-        className="biblioteca"
-        aria-label="Biblioteca de documentos"
-      >
-        <div>
-          <strong>Biblioteca</strong>
+          <span className={estilos.barraTitulo}>Conversación</span>
 
-          <span>
-            {documentos.length === 0
-              ? " Aún no has cargado documentos."
-              : ` ${documentos.length} documento${
-                  documentos.length === 1 ? "" : "s"
-                } cargado${
-                  documentos.length === 1 ? "" : "s"
-                }.`}
-          </span>
-        </div>
+          {usarDocumentos && documentos.documentos.length > 0 && (
+            <span className={estilos.barraEtiqueta}>
+              {documentos.documentos.length} documento
+              {documentos.documentos.length === 1 ? "" : "s"} en contexto
+            </span>
+          )}
+        </header>
 
-        {documentos.length > 0 && (
-          <ul className="lista-documentos">
-            {documentos.map((documento) => (
-              <li key={documento.id}>
-                <span>{documento.nombre}</span>
-                <small>{documento.tipo}</small>
-              </li>
-            ))}
-          </ul>
-        )}
-
-        <p>
-          Los documentos se guardan solo en este equipo.
-        </p>
-
-        <label className="usar-documentos">
-          <input
-            type="checkbox"
-            checked={usarDocumentos}
-            onChange={(evento) =>
-              setUsarDocumentos(evento.target.checked)
-            }
-            disabled={documentos.length === 0}
-          />
-
-          Usar documentos en las respuestas
-        </label>
-
-        {usarDocumentos && (
-          <p className="aviso-privacidad">
-            Se enviarán a la IA seleccionada solo fragmentos
-            relacionados con tu pregunta.
-          </p>
-        )}
-
-        {errorDocumento && (
-          <p
-            className="error-documento"
-            role="alert"
-          >
-            {errorDocumento}
-          </p>
-        )}
-      </section>
-
-      <section className="selector-modelo">
-        <label htmlFor="modelo">
-          <strong>Modelo de IA</strong>
-        </label>
-
-        <select
-          id="modelo"
-          value={modelo}
-          onChange={(e) => setModelo(e.target.value)}
-          disabled={cargando}
-        >
-          <option value="gemini">
-            Gemini
-          </option>
-
-          <option value="claude">
-            Claude
-          </option>
-        </select>
-      </section>
-
-      <main className="chat">
-        {mensajes.length === 0 && (
-          <div className="bienvenida">
-            <h2>
-              ¿En qué puedo ayudarte hoy Crack?
-            </h2>
-
-            <p>
-              Pregúntame sobre gestión pública,
-              programación, proyectos, tecnología o
-              cualquier otro tema.
-            </p>
-          </div>
-        )}
-
-        {mensajes.map((mensaje, index) => (
-          <div
-            key={index}
-            className={`mensaje ${
-              mensaje.tipo === "usuario"
-                ? "mensaje-usuario"
-                : "mensaje-ia"
-            }`}
-          >
-            <div className="nombre">
-              {mensaje.tipo === "usuario"
-                ? "Tú"
-                : `🤖 Asistente · ${nombreModelo(
-                    mensaje.modelo
-                  )}`}
-            </div>
-
-            <div className="texto">
-              {mensaje.tipo === "ia" ? (
-                <>
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                  >
-                    {mensaje.texto}
-                  </ReactMarkdown>
-
-                  {mensaje.fuentes?.length > 0 && (
-                    <div className="fuentes">
-                      <strong>
-                        Fuentes documentales
-                      </strong>
-
-                      <ul>
-                        {mensaje.fuentes.map(
-                          (fuente) => (
-                            <li key={fuente}>
-                              {fuente}
-                            </li>
-                          )
-                        )}
-                      </ul>
-                    </div>
-                  )}
-
-                  {mensaje.fuentesWeb?.length > 0 && (
-                    <div className="fuentes">
-                      <strong>
-                        Fuentes web
-                      </strong>
-
-                      <ul>
-                        {mensaje.fuentesWeb.map(
-                          (fuente, indice) => (
-                            <li
-                              key={`${fuente.url}-${indice}`}
-                            >
-                              <a
-                                href={fuente.url}
-                                target="_blank"
-                                rel="noreferrer"
-                              >
-                                {fuente.titulo ||
-                                  fuente.url}
-                              </a>
-                            </li>
-                          )
-                        )}
-                      </ul>
-                    </div>
-                  )}
-                </>
-              ) : (
-                mensaje.texto
-              )}
-            </div>
-          </div>
-        ))}
-
-        {cargando && (
-          <div className="mensaje mensaje-ia">
-            <div className="nombre">
-              🤖 Asistente ·{" "}
-              {nombreModelo(modelo)}
-            </div>
-
-            <div className="texto">
-              Pensando...
-            </div>
-          </div>
-        )}
-
-        {error && (
-          <div
-            className="error-chat"
-            role="alert"
-          >
-            {error}
-          </div>
-        )}
-
-        <div ref={finalDelChat} />
-      </main>
-
-      <footer className="entrada">
-        <textarea
-          value={pregunta}
-          onChange={(e) =>
-            setPregunta(e.target.value)
-          }
-          onKeyDown={manejarTecla}
-          placeholder="Escribe tu pregunta..."
-          disabled={cargando}
-          rows="1"
-          aria-label="Escribe tu pregunta"
+        <Chat
+          mensajes={mensajes}
+          cargando={cargando}
+          error={error}
+          modelo={modelo}
+          onSugerencia={enviarPregunta}
         />
 
-        <button
-          onClick={preguntarIA}
-          disabled={cargando}
-        >
-          {cargando ? "..." : "Enviar"}
-        </button>
-      </footer>
-
-      <p className="ayuda-entrada">
-        Enter para enviar · Shift + Enter para nueva
-        línea
-      </p>
+        <Compositor
+          valor={pregunta}
+          onCambiar={setPregunta}
+          onEnviar={() => enviarPregunta()}
+          cargando={cargando}
+          pistaModelo={modeloActual?.nombre}
+        />
+      </main>
     </div>
   );
 }
-
-export default App;

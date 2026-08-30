@@ -1,0 +1,175 @@
+/* --- Mensaje del usuario: burbuja a la derecha --- */
+
+.filaUsuario {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--e6);
+}
+
+.burbujaUsuario {
+  max-width: 85%;
+  padding: var(--e3) var(--e4);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-lg) var(--r-lg) var(--r-sm) var(--r-lg);
+  background: var(--bg-elevado);
+  color: var(--texto);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  animation: aparecer var(--t-media) both;
+}
+
+/* --- Mensaje de la IA: bloque a todo el ancho ---
+   Sin burbuja a proposito: las tablas, el codigo y las listas
+   largas necesitan el ancho completo para leerse bien. */
+
+.filaIa {
+  margin-bottom: var(--e6);
+  animation: aparecer var(--t-media) both;
+}
+
+.cabecera {
+  display: flex;
+  align-items: center;
+  gap: var(--e2);
+  margin-bottom: var(--e3);
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--acento-borde);
+  border-radius: var(--r-sm);
+  background: var(--acento-tenue);
+  color: var(--acento-claro);
+}
+
+.avatarActivo {
+  animation: latido 1.4s ease-in-out infinite;
+}
+
+.autor {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--texto);
+}
+
+.insignia {
+  padding: 1px var(--e2);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-full);
+  background: var(--bg-panel);
+  font-size: 11px;
+  color: var(--texto-suave);
+}
+
+.copiar {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  margin-left: auto;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--texto-tenue);
+  opacity: 0;
+  transition: opacity var(--t-rapida), background var(--t-rapida), color var(--t-rapida);
+}
+
+.filaIa:hover .copiar,
+.copiar:focus-visible {
+  opacity: 1;
+}
+
+.copiar:hover {
+  background: var(--bg-hover);
+  color: var(--texto);
+}
+
+.cuerpo {
+  padding-left: calc(24px + var(--e2));
+  color: var(--texto);
+}
+
+/* --- Fuentes --- */
+
+.fuentes {
+  margin-top: var(--e4);
+  padding-top: var(--e3);
+  border-top: 1px solid var(--borde-suave);
+}
+
+.fuentesTitulo {
+  display: flex;
+  align-items: center;
+  gap: var(--e2);
+  margin-bottom: var(--e2);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--texto-tenue);
+}
+
+.fuentesLista {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e2);
+}
+
+.chip {
+  max-width: 100%;
+  padding: var(--e1) var(--e3);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-full);
+  background: var(--bg-panel);
+  color: var(--texto-suave);
+  font-size: 12.5px;
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: border-color var(--t-rapida), color var(--t-rapida);
+}
+
+a.chip:hover {
+  border-color: var(--acento-borde);
+  color: var(--acento-claro);
+  text-decoration: none;
+}
+
+/* --- Indicador de "pensando" --- */
+
+.puntos {
+  display: flex;
+  gap: 5px;
+  padding: var(--e2) 0;
+}
+
+.puntos span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--texto-tenue);
+  animation: rebote 1.2s ease-in-out infinite;
+}
+
+.puntos span:nth-child(2) { animation-delay: 0.15s; }
+.puntos span:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes rebote {
+  0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-4px); }
+}
+
+@keyframes latido {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+@keyframes aparecer {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}

@@ -25,6 +25,14 @@ export function obtenerContextoSistema(ahora = new Date()) {
     timeZone: zonaHoraria,
   }).format(ahora);
 
+  // Version compacta para sitios con poco espacio (barra lateral).
+  const fechaCorta = new Intl.DateTimeFormat(idioma, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: zonaHoraria,
+  }).format(ahora);
+
   const hora = new Intl.DateTimeFormat(idioma, {
     timeStyle: "short",
     timeZone: zonaHoraria,
@@ -32,6 +40,7 @@ export function obtenerContextoSistema(ahora = new Date()) {
 
   return {
     fecha,
+    fechaCorta,
     hora,
     zonaHoraria,
     idioma,
