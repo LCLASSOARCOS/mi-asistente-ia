@@ -10,7 +10,8 @@ body {
 
 button,
 input,
-textarea {
+textarea,
+select {
   font: inherit;
 }
 
@@ -78,6 +79,42 @@ textarea {
 .boton-limpiar:disabled {
   cursor: not-allowed;
   opacity: 0.5;
+}
+
+/* Selector de modelo */
+
+.selector-modelo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 24px;
+  border-bottom: 1px solid #ddd;
+  background: #fff;
+  font-size: 14px;
+}
+
+.selector-modelo label {
+  color: #444;
+}
+
+.selector-modelo select {
+  min-width: 130px;
+  padding: 7px 30px 7px 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: white;
+  color: #222;
+  cursor: pointer;
+  outline: none;
+}
+
+.selector-modelo select:focus {
+  border-color: #888;
+}
+
+.selector-modelo select:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .chat {
@@ -291,6 +328,15 @@ textarea {
   padding-left: 18px;
 }
 
+.fuentes a {
+  color: #2457a6;
+  text-decoration: none;
+}
+
+.fuentes a:hover {
+  text-decoration: underline;
+}
+
 .mensaje-usuario .texto {
   background: #e8f0fe;
 }
@@ -371,6 +417,10 @@ textarea {
   .boton-limpiar {
     padding: 8px 10px;
     font-size: 12px;
+  }
+
+  .selector-modelo {
+    padding: 10px 16px;
   }
 
   .biblioteca {

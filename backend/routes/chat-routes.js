@@ -1,10 +1,15 @@
 import { Router } from "express";
-import { responderPregunta } from "../services/gemini-service.js";
+import { responderPregunta } from "../services/ai-chat.service.js";
 
 export const chatRouter = Router();
 
 chatRouter.post("/preguntar", async (req, res) => {
-  const { pregunta, historial = [], usarDocumentos = false } = req.body;
+  const {
+    pregunta,
+    historial = [],
+    usarDocumentos = false,
+    modelo = "gemini",
+  } = req.body;
 
   if (!pregunta?.trim()) {
     return res.status(400).json({
@@ -13,18 +18,29 @@ chatRouter.post("/preguntar", async (req, res) => {
   }
 
   try {
-    const { respuesta, fuentes } = await responderPregunta(pregunta, historial, usarDocumentos);
+    const {
+      respuesta,
+      fuentes,
+      fuentesWeb,
+    } = await responderPregunta(
+      pregunta,
+      historial,
+      usarDocumentos,
+      modelo
+    );
 
     return res.json({
       pregunta,
       respuesta,
       fuentes,
+      fuentesWeb,
+      modelo,
     });
   } catch (error) {
-    console.error("Error al consultar Gemini:", error);
+    console.error("ERROR COMPLETO:", error);
 
     return res.status(500).json({
-      error: "No pude consultar la IA. Revisa la configuración e inténtalo de nuevo.",
+      error: error.message || "Error desconocido.",
     });
   }
 });
