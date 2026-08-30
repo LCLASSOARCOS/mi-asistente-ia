@@ -6,6 +6,7 @@ import {
   documentosDirectory,
   guardarDocumento,
   listarDocumentosPublicos,
+  reindexarBiblioteca,
 } from "../services/documentos-service.js";
 
 const extensionesPermitidas = new Set([".pdf", ".txt", ".md"]);
@@ -51,6 +52,17 @@ documentosRouter.post("/", upload.single("archivo"), async (req, res, next) => {
   try {
     const documento = await guardarDocumento(req.file);
     return res.status(201).json({ documento });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+// Reconstruye el indice de todos los documentos. Util cuando
+// cambian los parametros de fragmentacion o la version del indice.
+documentosRouter.post("/reindexar", async (req, res, next) => {
+  try {
+    const resultado = await reindexarBiblioteca();
+    return res.json({ documentos: resultado });
   } catch (error) {
     return next(error);
   }
