@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { MODELO_POR_DEFECTO } from "../services/ai/ai.service.js";
 import { responderPregunta } from "../services/ai-chat.service.js";
 
 export const chatRouter = Router();
@@ -8,7 +9,7 @@ chatRouter.post("/preguntar", async (req, res) => {
     pregunta,
     historial = [],
     usarDocumentos = false,
-    modelo = "gemini",
+    modelo = MODELO_POR_DEFECTO,
   } = req.body;
 
   if (!pregunta?.trim()) {
@@ -18,16 +19,8 @@ chatRouter.post("/preguntar", async (req, res) => {
   }
 
   try {
-    const {
-      respuesta,
-      fuentes,
-      fuentesWeb,
-    } = await responderPregunta(
-      pregunta,
-      historial,
-      usarDocumentos,
-      modelo
-    );
+    const { respuesta, fuentes, fuentesWeb, contexto } =
+      await responderPregunta(pregunta, historial, usarDocumentos, modelo);
 
     return res.json({
       pregunta,
@@ -35,6 +28,7 @@ chatRouter.post("/preguntar", async (req, res) => {
       fuentes,
       fuentesWeb,
       modelo,
+      contexto,
     });
   } catch (error) {
     console.error("ERROR COMPLETO:", error);
