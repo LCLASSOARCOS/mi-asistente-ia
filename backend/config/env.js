@@ -11,4 +11,11 @@ export const config = {
   anthropicApiKey: process.env.ANTHROPIC_API_KEY,
 
   openaiApiKey: process.env.OPENAI_API_KEY,
+
+  // Contexto del sistema: el asistente usa esta zona horaria
+  // para saber que dia y que hora es, sin depender del modelo.
+  zonaHoraria:
+    process.env.ASISTENTE_ZONA_HORARIA || "America/Bogota",
+
+  idioma: process.env.ASISTENTE_IDIOMA || "es-CO",
 };
