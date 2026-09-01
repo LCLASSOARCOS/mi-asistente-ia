@@ -72,6 +72,7 @@ export function useChat() {
             texto: datos.respuesta,
             fuentes: datos.fuentes || [],
             fuentesWeb: datos.fuentesWeb || [],
+            recuperacion: datos.recuperacion || null,
             modelo: datos.modelo || modelo,
           },
         ]);

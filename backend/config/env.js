@@ -18,4 +18,11 @@ export const config = {
     process.env.ASISTENTE_ZONA_HORARIA || "America/Bogota",
 
   idioma: process.env.ASISTENTE_IDIOMA || "es-CO",
+
+  // Cuanto texto documental puede acompanar como maximo a una
+  // pregunta. Es el numero que decide si el asistente manda los
+  // documentos enteros o solo fragmentos.
+  presupuestoDocumental: Number(
+    process.env.ASISTENTE_PRESUPUESTO_DOCUMENTAL || 80_000
+  ),
 };

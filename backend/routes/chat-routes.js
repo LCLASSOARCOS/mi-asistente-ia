@@ -19,7 +19,7 @@ chatRouter.post("/preguntar", async (req, res) => {
   }
 
   try {
-    const { respuesta, fuentes, fuentesWeb, contexto } =
+    const { respuesta, fuentes, fuentesWeb, contexto, recuperacion } =
       await responderPregunta(pregunta, historial, usarDocumentos, modelo);
 
     return res.json({
@@ -29,6 +29,7 @@ chatRouter.post("/preguntar", async (req, res) => {
       fuentesWeb,
       modelo,
       contexto,
+      recuperacion,
     });
   } catch (error) {
     console.error("ERROR COMPLETO:", error);

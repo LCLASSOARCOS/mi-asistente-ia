@@ -173,3 +173,66 @@ a.chip:hover {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: none; }
 }
+
+/* --- Contexto documental: cuanto vio el modelo --- */
+
+.modo {
+  margin-left: auto;
+  padding: 1px var(--e2);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-full);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--texto-suave);
+}
+
+.modo[data-modo="completo"] {
+  border-color: rgba(74, 222, 128, 0.35);
+  background: rgba(74, 222, 128, 0.1);
+  color: var(--exito);
+}
+
+.modo[data-modo="mixto"],
+.modo[data-modo="fragmentos"] {
+  border-color: rgba(251, 191, 36, 0.3);
+  background: var(--aviso-tenue);
+  color: var(--aviso);
+}
+
+.modo[data-modo="insuficiente"] {
+  border-color: var(--error-borde);
+  background: var(--error-tenue);
+  color: var(--error);
+}
+
+.chipDato {
+  margin-left: var(--e2);
+  font-style: normal;
+  font-size: 11px;
+  color: var(--texto-tenue);
+}
+
+.chipCompleto {
+  border-color: rgba(74, 222, 128, 0.3);
+}
+
+.chipCompleto .chipDato {
+  color: var(--exito);
+}
+
+.chipOmitido {
+  border-style: dashed;
+  opacity: 0.75;
+}
+
+.chipOmitido .chipDato {
+  color: var(--aviso);
+}
+
+.medida {
+  margin: var(--e2) 0 0;
+  font-size: 11px;
+  color: var(--texto-tenue);
+}

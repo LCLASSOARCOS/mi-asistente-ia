@@ -10,6 +10,69 @@ function nombreModelo(modelo) {
   return modelo || "IA";
 }
 
+const ETIQUETA_MODO = {
+  completo: "documentos completos",
+  mixto: "parcialmente completo",
+  fragmentos: "solo fragmentos",
+  insuficiente: "no cupo nada",
+};
+
+/**
+ * Muestra CUANTO documento vio el modelo, no solo cual.
+ *
+ * "4 de 280 fragmentos" y "documento completo" son dos respuestas
+ * muy distintas, y hasta ahora la interfaz las pintaba igual.
+ */
+function ContextoDocumental({ recuperacion }) {
+  const { modo, caracteres, presupuesto, detalle = [], omitidos = [] } = recuperacion;
+
+  return (
+    <div className={estilos.fuentes}>
+      <div className={estilos.fuentesTitulo}>
+        <IconoDocumento tamano={13} />
+        Contexto documental
+        {ETIQUETA_MODO[modo] && (
+          <span className={estilos.modo} data-modo={modo}>
+            {ETIQUETA_MODO[modo]}
+          </span>
+        )}
+      </div>
+
+      <div className={estilos.fuentesLista}>
+        {detalle.map((pieza) => (
+          <span
+            key={pieza.documentoId || pieza.nombre}
+            className={`${estilos.chip} ${
+              pieza.tipo === "documento" ? estilos.chipCompleto : ""
+            }`}
+          >
+            {pieza.nombre}
+            <em className={estilos.chipDato}>
+              {pieza.tipo === "documento"
+                ? "completo"
+                : `${pieza.fragmentos} de ${pieza.deFragmentos}`}
+            </em>
+          </span>
+        ))}
+
+        {omitidos.map((omitido) => (
+          <span key={omitido.nombre} className={`${estilos.chip} ${estilos.chipOmitido}`}>
+            {omitido.nombre}
+            <em className={estilos.chipDato}>no cupo</em>
+          </span>
+        ))}
+      </div>
+
+      {caracteres > 0 && (
+        <p className={estilos.medida}>
+          {caracteres.toLocaleString("es")} de {presupuesto.toLocaleString("es")}{" "}
+          caracteres de presupuesto
+        </p>
+      )}
+    </div>
+  );
+}
+
 function Fuentes({ titulo, icono, children }) {
   return (
     <div className={estilos.fuentes}>
@@ -67,14 +130,18 @@ export function Mensaje({ mensaje }) {
       <div className={estilos.cuerpo}>
         <Markdown>{mensaje.texto}</Markdown>
 
-        {mensaje.fuentes?.length > 0 && (
-          <Fuentes titulo="Documentos consultados" icono={<IconoDocumento tamano={13} />}>
-            {mensaje.fuentes.map((fuente) => (
-              <span key={fuente} className={estilos.chip}>
-                {fuente}
-              </span>
-            ))}
-          </Fuentes>
+        {mensaje.recuperacion ? (
+          <ContextoDocumental recuperacion={mensaje.recuperacion} />
+        ) : (
+          mensaje.fuentes?.length > 0 && (
+            <Fuentes titulo="Documentos consultados" icono={<IconoDocumento tamano={13} />}>
+              {mensaje.fuentes.map((fuente) => (
+                <span key={fuente} className={estilos.chip}>
+                  {fuente}
+                </span>
+              ))}
+            </Fuentes>
+          )
         )}
 
         {mensaje.fuentesWeb?.length > 0 && (

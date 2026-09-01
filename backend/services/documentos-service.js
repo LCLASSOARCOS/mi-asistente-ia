@@ -2,6 +2,7 @@ import { mkdirSync } from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { config } from "../config/env.js";
 
 /**
  * BIBLIOTECA DOCUMENTAL
@@ -31,7 +32,7 @@ const catalogoPath = path.join(dataDirectory, "documentos.json");
 // POST /api/documentos/reindexar
 const FRAGMENTO_TAMANO = 900;
 const FRAGMENTO_SOLAPAMIENTO = 150;
-const VERSION_INDICE = 1;
+const VERSION_INDICE = 2;
 
 // Multer escribe el archivo antes de que corra nuestro codigo,
 // asi que la carpeta debe existir desde el arranque del servidor.
@@ -138,12 +139,18 @@ export async function indexarDocumento(documento) {
   const texto = await extraerTexto(documento);
   const fragmentos = crearFragmentos(texto);
 
+  // Guardamos el texto limpio completo ademas de los fragmentos.
+  // Los fragmentos se solapan 150 caracteres, asi que concatenarlos
+  // NO reconstruye el original: duplicaria cada costura.
+  const limpio = texto.replace(/\s+/g, " ").trim();
+
   const indice = {
     version: VERSION_INDICE,
     documentoId: documento.id,
     nombre: documento.nombre,
     indexadoEn: new Date().toISOString(),
-    caracteres: texto.length,
+    caracteres: limpio.length,
+    texto: limpio,
     fragmentos,
   };
 
@@ -326,4 +333,188 @@ export async function buscarFragmentosRelevantes(pregunta, limite = 6) {
       indice,
       puntaje: Number(puntaje.toFixed(3)),
     }));
+}
+
+// ---------------------------------------------------------------
+// Recuperacion adaptativa
+// ---------------------------------------------------------------
+
+/**
+ * Decide CUANTO documento mandarle al modelo, no solo cual.
+ *
+ * RAG no es una mejora: es un mal necesario cuando el documento no
+ * cabe. Trocear un documento que cabia entero pierde informacion a
+ * cambio de nada. Asi que primero preguntamos cuanto pesa la
+ * biblioteca y solo fragmentamos si hace falta.
+ *
+ *   cabe entera        -> modo "completo"
+ *   cabe en parte      -> modo "mixto"      (los mas relevantes enteros)
+ *   no cabe casi nada  -> modo "fragmentos" (los mejores trozos)
+ */
+export async function recuperarContexto(pregunta, opciones = {}) {
+  const presupuesto = opciones.presupuesto ?? config.presupuestoDocumental;
+  const vacio = { modo: "vacio", caracteres: 0, presupuesto, piezas: [] };
+
+  const documentos = await listarDocumentos();
+  if (documentos.length === 0) return vacio;
+
+  const cargados = [];
+
+  for (const documento of documentos) {
+    try {
+      cargados.push({ documento, indice: await obtenerIndice(documento) });
+    } catch (error) {
+      console.warn(`No pude leer el documento ${documento.nombre}:`, error.message);
+    }
+  }
+
+  if (cargados.length === 0) return vacio;
+
+  const total = cargados.reduce((suma, { indice }) => suma + indice.caracteres, 0);
+
+  // --- Caso 1: la biblioteca entera cabe. Nada que descartar. ---
+  if (total <= presupuesto) {
+    return {
+      modo: "completo",
+      caracteres: total,
+      presupuesto,
+      omitidos: [],
+      piezas: cargados.map(({ documento, indice }) => ({
+        documentoId: documento.id,
+        nombre: documento.nombre,
+        tipo: "documento",
+        texto: indice.texto,
+        fragmentos: indice.fragmentos.length,
+        deFragmentos: indice.fragmentos.length,
+      })),
+    };
+  }
+
+  // --- Caso 2: hay que elegir. Puntuamos fragmentos con IDF y
+  // agregamos por documento para saber cuales priorizar enteros. ---
+  const terminos = [...new Set(palabrasClave(pregunta))];
+
+  const candidatos = cargados.flatMap(({ documento, indice }) =>
+    indice.fragmentos.map((fragmento) => ({
+      documentoId: documento.id,
+      nombre: documento.nombre,
+      indice: fragmento.indice,
+      texto: fragmento.texto,
+      palabras: new Set(palabrasClave(fragmento.texto)),
+    }))
+  );
+
+  const idf = calcularIdf(terminos, candidatos);
+
+  for (const candidato of candidatos) {
+    candidato.puntaje = terminos.reduce(
+      (suma, termino) =>
+        candidato.palabras.has(termino) ? suma + idf.get(termino) : suma,
+      0
+    );
+  }
+
+  const puntajePorDocumento = new Map();
+
+  for (const candidato of candidatos) {
+    puntajePorDocumento.set(
+      candidato.documentoId,
+      (puntajePorDocumento.get(candidato.documentoId) || 0) + candidato.puntaje
+    );
+  }
+
+  const ordenados = [...cargados].sort(
+    (a, b) =>
+      (puntajePorDocumento.get(b.documento.id) || 0) -
+      (puntajePorDocumento.get(a.documento.id) || 0)
+  );
+
+  const piezas = [];
+  const enteros = new Set();
+  let restante = presupuesto;
+
+  // Primero, los documentos mas relevantes que quepan enteros.
+  for (const { documento, indice } of ordenados) {
+    if (indice.caracteres > restante) continue;
+
+    piezas.push({
+      documentoId: documento.id,
+      nombre: documento.nombre,
+      tipo: "documento",
+      texto: indice.texto,
+      fragmentos: indice.fragmentos.length,
+      deFragmentos: indice.fragmentos.length,
+    });
+
+    enteros.add(documento.id);
+    restante -= indice.caracteres;
+  }
+
+  // Con lo que sobre, los mejores fragmentos de los que no entraron.
+  const sueltos = candidatos
+    .filter((candidato) => !enteros.has(candidato.documentoId) && candidato.puntaje > 0)
+    .sort((a, b) => b.puntaje - a.puntaje || a.indice - b.indice);
+
+  const porDocumento = new Map();
+
+  for (const fragmento of sueltos) {
+    if (fragmento.texto.length > restante) continue;
+
+    if (!porDocumento.has(fragmento.documentoId)) {
+      porDocumento.set(fragmento.documentoId, []);
+    }
+
+    porDocumento.get(fragmento.documentoId).push(fragmento);
+    restante -= fragmento.texto.length;
+  }
+
+  for (const [documentoId, fragmentos] of porDocumento) {
+    const { indice } = cargados.find(({ documento }) => documento.id === documentoId);
+
+    const enOrden = [...fragmentos].sort((a, b) => a.indice - b.indice);
+
+    piezas.push({
+      documentoId,
+      nombre: enOrden[0].nombre,
+      tipo: "fragmentos",
+      texto: enOrden.map((fragmento) => fragmento.texto).join("\n[…]\n"),
+      fragmentos: enOrden.length,
+      deFragmentos: indice.fragmentos.length,
+    });
+  }
+
+  const hayEnteros = piezas.some((pieza) => pieza.tipo === "documento");
+  const hayTrozos = piezas.some((pieza) => pieza.tipo === "fragmentos");
+
+  // Un documento puede no entrar NI ENTERO NI EN TROZOS. Decir
+  // "modo completo" en ese caso seria mentir por omision: ni el
+  // usuario ni el modelo sabrian que falta media biblioteca.
+  const incluidos = new Set(piezas.map((pieza) => pieza.documentoId));
+
+  const omitidos = cargados
+    .filter(({ documento }) => !incluidos.has(documento.id))
+    .map(({ documento, indice }) => ({
+      nombre: documento.nombre,
+      caracteres: indice.caracteres,
+      fragmentos: indice.fragmentos.length,
+    }));
+
+  // Si no entro absolutamente nada (presupuesto mas pequeno que un
+  // fragmento) hay que decirlo, no devolver un contexto vacio que
+  // el usuario confundiria con "el modelo si leyo mis documentos".
+  const modo = piezas.length === 0
+    ? "insuficiente"
+    : hayEnteros && hayTrozos
+      ? "mixto"
+      : hayEnteros
+        ? "completo"
+        : "fragmentos";
+
+  return {
+    modo,
+    caracteres: piezas.reduce((suma, pieza) => suma + pieza.texto.length, 0),
+    presupuesto,
+    omitidos,
+    piezas,
+  };
 }
