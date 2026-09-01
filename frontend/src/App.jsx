@@ -25,7 +25,7 @@ export default function App() {
     () => localStorage.getItem(CLAVE_MODELO) || "gemini"
   );
 
-  const { mensajes, cargando, error, enviar, limpiar } = useChat();
+  const { mensajes, cargando, error, intentosFallidos, enviar, limpiar } = useChat();
   const documentos = useDocumentos();
   const { contexto, modelos, enLinea } = useEstadoSistema();
 
@@ -97,6 +97,7 @@ export default function App() {
           mensajes={mensajes}
           cargando={cargando}
           error={error}
+          intentosFallidos={intentosFallidos}
           modelo={modelo}
           onSugerencia={enviarPregunta}
         />

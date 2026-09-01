@@ -40,7 +40,7 @@ function Bienvenida({ onSugerencia }) {
   );
 }
 
-export function Chat({ mensajes, cargando, error, modelo, onSugerencia }) {
+export function Chat({ mensajes, cargando, error, intentosFallidos = [], modelo, onSugerencia }) {
   const final = useRef(null);
 
   useEffect(() => {
@@ -63,7 +63,23 @@ export function Chat({ mensajes, cargando, error, modelo, onSugerencia }) {
         {error && (
           <div className={estilos.error} role="alert">
             <IconoAviso tamano={16} />
-            <span>{error}</span>
+
+            <div>
+              <span>{error}</span>
+
+              {intentosFallidos.length > 0 && (
+                <ul className={estilos.intentos}>
+                  {intentosFallidos.map((intento, indice) => (
+                    <li key={`${intento.modelo}-${indice}`}>
+                      <strong>{intento.modelo}</strong>
+                      {intento.resultado === "omitido"
+                        ? ` · omitido: ${intento.motivo}`
+                        : ` · ${intento.tipo}: ${intento.mensaje}`}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
         )}
 

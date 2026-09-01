@@ -28,6 +28,7 @@ export function useChat() {
   const [mensajes, setMensajes] = useState(recuperar);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState("");
+  const [intentosFallidos, setIntentosFallidos] = useState([]);
 
   useEffect(() => {
     localStorage.setItem(CLAVE, JSON.stringify(mensajes));
@@ -49,6 +50,7 @@ export function useChat() {
       const historial = mensajes.map(({ tipo, texto }) => ({ tipo, texto }));
 
       setError("");
+      setIntentosFallidos([]);
       setCargando(true);
 
       setMensajes((anteriores) => [
@@ -74,11 +76,14 @@ export function useChat() {
             fuentesWeb: datos.fuentesWeb || [],
             recuperacion: datos.recuperacion || null,
             modelo: datos.modelo || modelo,
+            modeloSolicitado: datos.modeloSolicitado || modelo,
+            intentos: datos.intentos || [],
           },
         ]);
       } catch (fallo) {
         console.error(fallo);
         setError(fallo.message);
+        setIntentosFallidos(fallo.datos?.intentos || []);
       } finally {
         setCargando(false);
       }
@@ -89,8 +94,9 @@ export function useChat() {
   const limpiar = useCallback(() => {
     setMensajes([]);
     setError("");
+    setIntentosFallidos([]);
     localStorage.removeItem(CLAVE);
   }, []);
 
-  return { mensajes, cargando, error, enviar, limpiar };
+  return { mensajes, cargando, error, intentosFallidos, enviar, limpiar };
 }

@@ -87,10 +87,20 @@ export async function responderPregunta(
 
   const messages = construirMensajes(historial, pregunta);
 
-  const respuesta = await generarRespuesta({ modelo, system, messages });
+  const respuesta = await generarRespuesta({
+    modelo,
+    system,
+    messages,
+    usarDocumentos,
+  });
 
   return {
     respuesta: respuesta.texto,
+    // El modelo que respondio puede no ser el que pediste: si el
+    // primero fallo, respondio un respaldo. Devolvemos los dos.
+    modelo: respuesta.modelo,
+    modeloSolicitado: modelo,
+    intentos: respuesta.intentos,
     fuentes,
     fuentesWeb: respuesta.fuentesWeb || [],
     contexto,

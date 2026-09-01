@@ -236,3 +236,14 @@ a.chip:hover {
   font-size: 11px;
   color: var(--texto-tenue);
 }
+
+/* Aviso de que respondio un proveedor distinto al que pediste */
+.respaldo {
+  padding: 1px var(--e2);
+  border: 1px solid rgba(251, 191, 36, 0.32);
+  border-radius: var(--r-full);
+  background: var(--aviso-tenue);
+  font-size: 10.5px;
+  color: var(--aviso);
+  cursor: help;
+}

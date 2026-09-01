@@ -117,6 +117,17 @@ export function Mensaje({ mensaje }) {
         <span className={estilos.autor}>Asistente</span>
         <span className={estilos.insignia}>{nombreModelo(mensaje.modelo)}</span>
 
+        {mensaje.modeloSolicitado &&
+          mensaje.modeloSolicitado !== "auto" &&
+          mensaje.modeloSolicitado !== mensaje.modelo && (
+            <span
+              className={estilos.respaldo}
+              title={`Pediste ${nombreModelo(mensaje.modeloSolicitado)}, pero falló y respondió ${nombreModelo(mensaje.modelo)}.`}
+            >
+              respaldo
+            </span>
+          )}
+
         <button
           type="button"
           className={estilos.copiar}

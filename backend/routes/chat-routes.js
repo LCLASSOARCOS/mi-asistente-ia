@@ -19,23 +19,22 @@ chatRouter.post("/preguntar", async (req, res) => {
   }
 
   try {
-    const { respuesta, fuentes, fuentesWeb, contexto, recuperacion } =
-      await responderPregunta(pregunta, historial, usarDocumentos, modelo);
-
-    return res.json({
+    const resultado = await responderPregunta(
       pregunta,
-      respuesta,
-      fuentes,
-      fuentesWeb,
-      modelo,
-      contexto,
-      recuperacion,
-    });
+      historial,
+      usarDocumentos,
+      modelo
+    );
+
+    return res.json({ pregunta, ...resultado });
   } catch (error) {
     console.error("ERROR COMPLETO:", error);
 
     return res.status(500).json({
       error: error.message || "Error desconocido.",
+      // La bitacora de intentos viaja tambien en el fallo: es
+      // justo cuando mas falta hace saber que se probo.
+      intentos: error.intentos || [],
     });
   }
 });

@@ -29,9 +29,13 @@ async function pedir(ruta, opciones) {
   }
 
   if (!respuesta.ok) {
-    throw new Error(
+    const fallo = new Error(
       datos?.error || `El servidor respondió con un error ${respuesta.status}.`
     );
+
+    // El cuerpo del error trae la bitacora de proveedores probados.
+    fallo.datos = datos;
+    throw fallo;
   }
 
   return datos;

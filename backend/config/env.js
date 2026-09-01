@@ -25,4 +25,13 @@ export const config = {
   presupuestoDocumental: Number(
     process.env.ASISTENTE_PRESUPUESTO_DOCUMENTAL || 80_000
   ),
+
+  // Si un proveedor falla, intentar con el siguiente.
+  fallbackActivo: process.env.ASISTENTE_FALLBACK !== "false",
+
+  // Cuanto esperamos a un proveedor antes de darlo por perdido.
+  tiempoLimiteMs: Number(process.env.ASISTENTE_TIEMPO_LIMITE_MS || 60_000),
+
+  // Reintentos con el MISMO proveedor ante fallos transitorios.
+  reintentosPorProveedor: Number(process.env.ASISTENTE_REINTENTOS || 1),
 };
