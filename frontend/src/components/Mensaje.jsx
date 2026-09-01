@@ -1,6 +1,13 @@
 import { useState } from "react";
 import { Markdown } from "./Markdown.jsx";
-import { IconoCheck, IconoCopiar, IconoDocumento, IconoGlobo, IconoLogo } from "./Iconos.jsx";
+import {
+  IconoCheck,
+  IconoCopiar,
+  IconoDocumento,
+  IconoGlobo,
+  IconoHerramienta,
+  IconoLogo,
+} from "./Iconos.jsx";
 import estilos from "./Mensaje.module.css";
 
 function nombreModelo(modelo) {
@@ -140,6 +147,27 @@ export function Mensaje({ mensaje }) {
 
       <div className={estilos.cuerpo}>
         <Markdown>{mensaje.texto}</Markdown>
+
+        {mensaje.usoHerramientas?.length > 0 && (
+          <Fuentes titulo="Herramientas usadas" icono={<IconoHerramienta tamano={13} />}>
+            {mensaje.usoHerramientas.map((uso, indice) => (
+              <span
+                key={`${uso.nombre}-${indice}`}
+                className={`${estilos.chip} ${uso.ok === false ? estilos.chipOmitido : ""}`}
+                title={
+                  uso.argumentos?.consulta
+                    ? `consulta: ${uso.argumentos.consulta}`
+                    : undefined
+                }
+              >
+                {uso.nombre}
+                <em className={estilos.chipDato}>
+                  {uso.ok === false ? "error" : `${uso.ms} ms`}
+                </em>
+              </span>
+            ))}
+          </Fuentes>
+        )}
 
         {mensaje.recuperacion ? (
           <ContextoDocumental recuperacion={mensaje.recuperacion} />

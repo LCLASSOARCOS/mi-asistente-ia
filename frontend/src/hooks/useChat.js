@@ -35,7 +35,7 @@ export function useChat() {
   }, [mensajes]);
 
   const enviar = useCallback(
-    async (texto, { modelo, usarDocumentos }) => {
+    async (texto, { modelo, permisos }) => {
       const pregunta = texto.trim();
       if (!pregunta) return;
 
@@ -62,7 +62,7 @@ export function useChat() {
         const datos = await preguntar({
           pregunta,
           historial,
-          usarDocumentos,
+          permisos,
           modelo,
         });
 
@@ -75,6 +75,7 @@ export function useChat() {
             fuentes: datos.fuentes || [],
             fuentesWeb: datos.fuentesWeb || [],
             recuperacion: datos.recuperacion || null,
+            usoHerramientas: datos.usoHerramientas || [],
             modelo: datos.modelo || modelo,
             modeloSolicitado: datos.modeloSolicitado || modelo,
             intentos: datos.intentos || [],

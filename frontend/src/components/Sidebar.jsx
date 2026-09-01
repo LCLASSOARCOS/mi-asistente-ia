@@ -22,8 +22,8 @@ export function Sidebar({
   onCambiarModelo,
   modelos,
   documentos,
-  usarDocumentos,
-  onCambiarUsarDocumentos,
+  permisos,
+  onCambiarPermiso,
   onSubirDocumento,
   subiendoDocumento,
   errorDocumento,
@@ -87,12 +87,56 @@ export function Sidebar({
                 <span className={estilos.punto} data-activo={modelo === opcion.id} />
                 <span className={estilos.opcionNombre}>{opcion.nombre}</span>
 
-                {opcion.capacidades?.busquedaWeb && (
-                  <span className={estilos.etiqueta}>web</span>
-                )}
               </button>
             ))}
           </div>
+        </section>
+
+        <section className={estilos.seccion}>
+          <h2 className={estilos.titulo}>Permisos</h2>
+
+          <p className={estilos.explicacion}>
+            Tú autorizas; el asistente decide si le hacen falta. Lo que
+            apagues aquí no se le ofrece siquiera.
+          </p>
+
+          <label className={estilos.interruptor}>
+            <input
+              type="checkbox"
+              checked={permisos.documentos}
+              onChange={(evento) =>
+                onCambiarPermiso("documentos", evento.target.checked)
+              }
+              disabled={documentos.length === 0}
+            />
+
+            <span className={estilos.pista} aria-hidden="true">
+              <span className={estilos.bola} />
+            </span>
+
+            Consultar mis documentos
+          </label>
+
+          <label className={estilos.interruptor}>
+            <input
+              type="checkbox"
+              checked={permisos.web}
+              onChange={(evento) => onCambiarPermiso("web", evento.target.checked)}
+            />
+
+            <span className={estilos.pista} aria-hidden="true">
+              <span className={estilos.bola} />
+            </span>
+
+            Buscar en internet
+          </label>
+
+          {permisos.web && (
+            <p className={estilos.aviso}>
+              Tus preguntas pueden salir hacia un buscador externo cuando el
+              asistente decida buscar.
+            </p>
+          )}
         </section>
 
         <section className={estilos.seccion}>
@@ -102,28 +146,6 @@ export function Sidebar({
               <span className={estilos.contador}>{documentos.length}</span>
             )}
           </h2>
-
-          <label className={estilos.interruptor}>
-            <input
-              type="checkbox"
-              checked={usarDocumentos}
-              onChange={(evento) => onCambiarUsarDocumentos(evento.target.checked)}
-              disabled={documentos.length === 0}
-            />
-
-            <span className={estilos.pista} aria-hidden="true">
-              <span className={estilos.bola} />
-            </span>
-
-            Usar en las respuestas
-          </label>
-
-          {usarDocumentos && (
-            <p className={estilos.aviso}>
-              Solo se envían al modelo los fragmentos relacionados con tu
-              pregunta.
-            </p>
-          )}
 
           {documentos.length === 0 ? (
             <p className={estilos.vacio}>Aún no has cargado documentos.</p>

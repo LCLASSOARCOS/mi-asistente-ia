@@ -72,47 +72,27 @@ function disponiblesEnOrden() {
 /**
  * MODO AUTO
  *
- * Esto es una heuristica, no inteligencia: unas expresiones
- * regulares mirando la pregunta. Es deliberadamente tonta y
- * transparente, y esta aqui para que exista el punto de decision.
- * En la Fase 6 el orquestador ocupara este mismo hueco y decidira
- * de verdad — con las herramientas que necesite, no con un regex.
+ * Antes esto enrutaba por capacidades: si la pregunta olia a tiempo
+ * real, iba al proveedor que sabia buscar en la web. Ese trabajo
+ * desaparecio cuando la busqueda web paso a ser una herramienta del
+ * sistema: ahora TODOS los modelos pueden buscar, asi que no hay
+ * nada que enrutar.
+ *
+ * Se borro la heuristica en vez de inventarle una tarea nueva. AUTO
+ * significa hoy "elige tu y aguanta si alguno se cae": el primero
+ * disponible, con la cadena de respaldo detras. Cuando los
+ * proveedores vuelvan a diferenciarse en algo que importe (coste,
+ * ventana de contexto, calidad medida), aqui es donde ira.
  */
-const PISTAS_TIEMPO_REAL =
-  /\b(hoy|ayer|ahora|actual(es|mente)?|recient(e|es|emente)|[uú]ltim[oa]s?|noticias?|precio|cotizaci[oó]n|d[oó]lar|trm|qu[eé] pas[oó]|en vivo|esta semana|este a[ñn]o|20\d\d)\b/i;
-
-export function elegirModelo(texto = "", { usarDocumentos = false } = {}) {
-  const candidatos = disponiblesEnOrden();
-  if (candidatos.length === 0) return null;
-
-  // ¿Huele a informacion que cambia? Que lo lleve quien busca en la web.
-  if (PISTAS_TIEMPO_REAL.test(texto)) {
-    const conWeb = candidatos.find(
-      (proveedor) => proveedor.capacidades?.busquedaWeb
-    );
-
-    if (conWeb) return conWeb;
-  }
-
-  // Con documentos cargados la respuesta debe salir de ELLOS. Un
-  // proveedor sin busqueda web no puede irse a buscar por su cuenta
-  // ni mezclar fuentes sin avisar.
-  if (usarDocumentos) {
-    const sinWeb = candidatos.find(
-      (proveedor) => !proveedor.capacidades?.busquedaWeb
-    );
-
-    if (sinWeb) return sinWeb;
-  }
-
-  return candidatos[0];
+export function elegirModelo() {
+  return disponiblesEnOrden()[0] || null;
 }
 
-function construirCadena(modelo, texto, usarDocumentos) {
+function construirCadena(modelo) {
   const omitidos = [];
 
   if (modelo === MODELO_AUTO) {
-    const elegido = elegirModelo(texto, { usarDocumentos });
+    const elegido = elegirModelo();
     if (!elegido) return { cadena: [], omitidos };
 
     return {
@@ -172,14 +152,13 @@ export async function generarRespuesta({
   modelo = MODELO_POR_DEFECTO,
   system = "",
   messages = [],
-  usarDocumentos = false,
+  herramientas = [],
 }) {
   if (messages.length === 0) {
     throw new Error("No hay mensajes que enviar al modelo.");
   }
 
-  const ultimoTexto = messages.at(-1)?.texto || "";
-  const { cadena, omitidos } = construirCadena(modelo, ultimoTexto, usarDocumentos);
+  const { cadena, omitidos } = construirCadena(modelo);
   const intentos = [...omitidos];
 
   if (cadena.length === 0) {
@@ -197,7 +176,7 @@ export async function generarRespuesta({
     for (let intento = 1; intento <= maximo; intento += 1) {
       try {
         const respuesta = await conTiempoLimite(
-          proveedor.generar({ system, messages }),
+          proveedor.generar({ system, messages, herramientas }),
           config.tiempoLimiteMs
         );
 

@@ -7,19 +7,23 @@
            │
       routes/chat-routes.js          ← única capa que sabe de HTTP
            │
-      services/ai-chat.service.js    ← orquestación (provisional, Fase 6)
+      services/ai-chat.service.js    ← prepara el contexto de la petición
            ├── contexto-sistema.service.js   fecha, hora, zona horaria
-           ├── documentos-service.js         recuperarContexto(pregunta)
+           ├── tools/registro.js             herramientas según permisos
            ├── prompts/assistant.prompt.js   arma el system prompt
            └── ai/mensajes.js                normaliza el historial
+           │
+      services/orquestador.service.js  ← el bucle de herramientas
+           ├── tools/documentos.tool.js      consultar_documentos
+           └── tools/web.tool.js             buscar_en_web
            │
       services/ai/ai.service.js      ← registro de proveedores + respaldo
            ├── ai/gemini.provider.js
            ├── ai/claude.provider.js
            └── ai/errores.js                 clasifica el fallo
            │
-      { respuesta, modelo, modeloSolicitado, intentos, fuentes,
-        fuentesWeb, contexto, recuperacion }
+      { respuesta, modelo, modeloSolicitado, intentos, usoHerramientas,
+        fuentes, fuentesWeb, contexto, recuperacion }
 
 ## El contrato con los proveedores
 
@@ -76,6 +80,33 @@ filtrando los que no tienen API key. Qué se hace ante cada fallo:
 
 Toda respuesta y todo error llevan `intentos`: la bitácora de qué se probó y
 cómo fue. Es lo que permitirá diagnosticar una tarea que falle de madrugada.
+
+## Herramientas
+
+Una herramienta declara un contrato y no sabe qué modelo la llama:
+
+```js
+{
+  nombre, descripcion,
+  parametros,             // JSON Schema
+  requierePermiso,        // "documentos" | "web" | null
+  disponible(),
+  async ejecutar(argumentos) { return { contenido, datos }; },
+}
+```
+
+Se registra en `tools/registro.js`. `listarHerramientas(permisos)` devuelve solo
+las que el usuario ha autorizado **y** que están disponibles: una herramienta sin
+permiso no se le ofrece al modelo, así que no puede pedirla.
+
+El bucle (`orquestador.service.js`): el modelo pide herramientas → se ejecutan →
+se le devuelven los resultados → puede pedir más o responder. Tope de 4 vueltas;
+en la última se le retiran las herramientas para forzar una respuesta. Si una
+herramienta falla, el error se le devuelve como resultado y la conversación
+continúa.
+
+`buscar_en_web` es una herramienta del sistema, no una capacidad de Gemini:
+cualquier modelo puede usarla, aunque por debajo la implemente `buscarConGemini()`.
 
 ## Documentos
 

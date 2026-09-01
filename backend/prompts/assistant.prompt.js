@@ -1,16 +1,14 @@
 /**
  * Construye el SYSTEM PROMPT del asistente.
  *
- * El system prompt es distinto de un mensaje del usuario: define
- * quien es el asistente y bajo que reglas trabaja. Los proveedores
- * lo tratan como instrucciones de mayor jerarquia, no como algo
- * que el usuario dijo, y ademas se puede cachear entre llamadas.
- *
- * Por eso la conversacion NO va aqui: la conversacion son mensajes.
+ * El system prompt define quien es el asistente y bajo que reglas
+ * trabaja. Los proveedores lo tratan como instrucciones de mayor
+ * jerarquia, no como algo que dijo el usuario. Por eso la
+ * conversacion NO va aqui: la conversacion son mensajes.
  */
 export function construirSystemPrompt({
   contextoSistema = "",
-  contextoDocumental = "",
+  herramientas = [],
 } = {}) {
   const bloques = [
     `Eres "Mi Asistente IA", el asistente personal de Luisca.
@@ -26,17 +24,32 @@ Como respondes:
 - Usa Markdown cuando ayude a leer (listas, tablas, codigo).`,
   ];
 
-  if (contextoSistema) {
-    bloques.push(contextoSistema);
-  }
+  if (contextoSistema) bloques.push(contextoSistema);
 
-  if (contextoDocumental) {
-    bloques.push(`${contextoDocumental}
+  if (herramientas.length > 0) {
+    const listado = herramientas
+      .map((herramienta) => `- ${herramienta.nombre}: ${herramienta.descripcion}`)
+      .join("\n");
 
-Al usar informacion proveniente de estos documentos, indica el
-nombre del documento entre corchetes, asi: [nombre-del-documento].
-Si los fragmentos no alcanzan para responder, dilo en lugar de
-completar con suposiciones.`);
+    bloques.push(`Tienes herramientas. Tu decides si hacen falta:
+
+${listado}
+
+Reglas de uso:
+- Usalas cuando la respuesta dependa de informacion que no posees:
+  documentos del usuario, o hechos que cambian con el tiempo.
+- NO las uses para conocimiento general estable ni para explicar
+  conceptos. Responder directamente es mas rapido y barato.
+- Puedes encadenar varias si la pregunta lo pide.
+- Cita siempre el origen: el nombre del documento entre corchetes,
+  o la fuente web.
+- Si una herramienta falla o no esta disponible, dilo. Nunca
+  respondas como si la hubieras consultado.`);
+  } else {
+    bloques.push(`No tienes herramientas disponibles en esta conversacion:
+no puedes consultar los documentos del usuario ni buscar en
+internet. Responde solo con tu conocimiento, y si algo requiere una
+de esas dos cosas, dilo claramente en vez de suponer.`);
   }
 
   return bloques.join("\n\n---\n\n");

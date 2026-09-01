@@ -8,9 +8,14 @@ chatRouter.post("/preguntar", async (req, res) => {
   const {
     pregunta,
     historial = [],
-    usarDocumentos = false,
     modelo = MODELO_POR_DEFECTO,
+    // Permisos que concede el usuario. Se acepta tambien el
+    // usarDocumentos antiguo para no romper clientes ya escritos.
+    permisos,
+    usarDocumentos = false,
   } = req.body;
+
+  const permisosEfectivos = permisos || { documentos: usarDocumentos, web: true };
 
   if (!pregunta?.trim()) {
     return res.status(400).json({
@@ -22,7 +27,7 @@ chatRouter.post("/preguntar", async (req, res) => {
     const resultado = await responderPregunta(
       pregunta,
       historial,
-      usarDocumentos,
+      permisosEfectivos,
       modelo
     );
 

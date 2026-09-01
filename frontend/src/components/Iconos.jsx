@@ -107,3 +107,10 @@ export const IconoReloj = (p) => (
     <path d="M12 7v5l3 2" />
   </Svg>
 );
+
+export const IconoHerramienta = (p) => (
+  <Svg {...p}>
+    <path d="M14.7 6.3a4 4 0 0 1 5.4 5.2l-8.2 8.2a2.5 2.5 0 0 1-3.6-3.6l7.5-7.5" />
+    <path d="M9.5 4.5L4 10l-1.5-1.5a3 3 0 0 1 0-4.2l.8-.8a3 3 0 0 1 4.2 0L9.5 4.5z" />
+  </Svg>
+);

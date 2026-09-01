@@ -1,6 +1,6 @@
 # Mi Asistente IA — Plan del proyecto
 
-> Estado a 31 de agosto de 2026. Actualiza este archivo cuando cierres una fase.
+> Estado a 1 de septiembre de 2026. Actualiza este archivo cuando cierres una fase.
 
 ## Qué es esto
 
@@ -35,8 +35,8 @@ Si la respuesta es "no, habría que duplicar la lógica", el canal se comió al 
 | 3 | Multimodelo (Gemini + Claude) | ✅ |
 | 4 | Contexto del sistema (fecha, hora, identidad) | ✅ |
 | 5 | RAG: índice persistente, IDF, recuperación adaptativa | ✅ |
-| 6 | Orquestador con herramientas | ⬜ siguiente |
-| 7 | Búsqueda web propia (sin depender de Gemini) | ⬜ |
+| 6 | Orquestador con herramientas | ✅ |
+| 7 | Búsqueda web propia | 🟡 ya es herramienta del sistema; por debajo aún la implementa Gemini |
 | 8 | Fallback entre proveedores y modo AUTO | ✅ |
 | 9 | Memoria persistente | ⬜ |
 | 10 | Catálogo de herramientas | ⬜ |
@@ -55,36 +55,41 @@ Lo que ya funciona en concreto:
 - Fecha y hora reales inyectadas a todos los modelos por igual.
 - Biblioteca de PDF, TXT y Markdown con índice persistente.
 - Recuperación adaptativa: documentos enteros si caben, fragmentos si no.
+- **Orquestador**: el modelo decide solo si necesita documentos o internet,
+  puede encadenar varias herramientas, y la interfaz muestra cuáles usó.
+- **Permisos**: tú autorizas el acceso a documentos e internet; el asistente
+  decide si le hacen falta. Lo que apagues no se le ofrece siquiera.
 - Interfaz con barra lateral, tokens de diseño y tema oscuro.
 
-## Lo siguiente: Fase 6, el orquestador
+## Lo siguiente
 
-Hoy tú decides con un interruptor si se usan los documentos. El orquestador debe
-decidirlo solo, y con él el sistema deja de ser "un chat con extras".
+Con el orquestador en pie, las tres candidatas son:
 
-Requiere:
+- **Fase 9 · Memoria.** Encaja como una herramienta más (`recordar`, `consultar_memoria`),
+  así que el orquestador ya tiene dónde enchufarla.
+- **Fase 7 · Buscador propio.** Hoy `buscar_en_web` usa Gemini por debajo. Cambiar
+  esa implementación no toca el contrato: es sustituir una función.
+- **Fase 11 · Automatizaciones.** Requiere primero generalizar la entrada del núcleo.
+  La firma de hoy sigue teniendo forma de chat:
 
-1. Definir herramientas como contratos (nombre, descripción, parámetros).
-2. Traducir esos contratos a los dos formatos de *tool use* (Anthropic y Gemini).
-3. Un bucle: el modelo pide una herramienta → la ejecutamos → le devolvemos el
-   resultado → puede pedir otra o responder.
-4. Generalizar la entrada del núcleo. La firma de hoy tiene forma de chat:
+      responderPregunta(pregunta, historial, permisos, modelo)
 
-       responderPregunta(pregunta, historial, usarDocumentos, modelo)
+  Un monitor no tiene "pregunta" ni "historial": tiene una instrucción guardada, un
+  estado anterior y un resultado nuevo. Hará falta algo como:
 
-   Un monitor no tiene "pregunta" ni "historial": tiene una instrucción guardada,
-   un estado anterior y un resultado nuevo. Hará falta algo como:
+      ejecutar({ instruccion, contexto, permisos, origen })
 
-       ejecutar({ instruccion, contexto, herramientas, origen })
-
-   donde `origen` decide a dónde va la respuesta: pantalla, notificación o registro.
+  donde `origen` decide a dónde va la respuesta: pantalla, notificación o registro.
 
 ## Deuda conocida
 
 - `backend/services/ai/openai.provider.js` está vacío; falta la API key.
 - Los encabezados y pies de página de los PDF se cuelan en el texto extraído.
 - `node --watch` no vigila `.env`: cambiar una variable exige reiniciar a mano.
-- El modo AUTO es una expresión regular; lo sustituirá el orquestador.
+- El modo AUTO ya no enruta por capacidades (dejó de tener sentido cuando la web
+  pasó a ser herramienta): hoy es "el primero disponible, con respaldo detrás".
+- El orquestador no cachea: dos preguntas seguidas sobre lo mismo consultan
+  los documentos dos veces.
 - No hay pruebas automatizadas.
 - No hay autenticación: el backend asume un único usuario en red local (Fase 15).
 

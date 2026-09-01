@@ -52,8 +52,13 @@
   color: var(--texto-suave);
 }
 
-.barraEtiqueta {
+.barraPermisos {
+  display: flex;
+  gap: var(--e2);
   margin-left: auto;
+}
+
+.barraEtiqueta {
   padding: 2px var(--e3);
   border: 1px solid var(--acento-borde);
   border-radius: var(--r-full);

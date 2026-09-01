@@ -196,3 +196,81 @@ caja, no rompen la página.
   se llaman dos veces.
 - **`grid-template-rows: minmax(0, 1fr)`.** Un grid con altura fija no limita sus
   filas si no se lo dices: el compositor quedaba fuera de la pantalla.
+
+---
+
+## D14 · Las herramientas son contratos, no código pegado a un modelo
+
+**Decisión.** Una herramienta declara `nombre`, `descripcion`, `parametros`
+(JSON Schema) y `ejecutar()`. Cada proveedor traduce ese contrato a su formato:
+Anthropic usa `tools` con bloques `tool_use`/`tool_result`; Gemini usa
+`functionDeclarations` con `functionCall`/`functionResponse`.
+
+**Consecuencias.** La herramienta no sabe qué modelo la llamó, y añadir un
+proveedor no obliga a reescribir ninguna herramienta. Es el principio
+"modelo ≠ herramienta" hecho código.
+
+---
+
+## D15 · La búsqueda web salió del proveedor y subió a herramienta
+
+**Problema.** `googleSearch` vivía dentro del provider de Gemini. La web era una
+capacidad **suya**; Claude simplemente no tenía internet.
+
+**Decisión.** `buscar_en_web` es una herramienta del sistema, disponible para
+todos los modelos. Por debajo la implementa `buscarConGemini()`.
+
+**Motivo técnico añadido.** La API de Gemini no permite mezclar `googleSearch`
+con `functionDeclarations` en la misma petición. O renunciábamos a la web con
+Gemini, o la subíamos a herramienta. La segunda es la correcta por diseño *y* la
+única que funciona.
+
+**Consecuencias.** Claude ganó búsqueda web sin tocar su provider. Cuando
+conectemos un buscador propio (Fase 7) cambiará una función y nada más: el
+contrato ya no se mueve. Coste: una llamada extra a Gemini por búsqueda.
+
+---
+
+## D16 · Los interruptores son permisos, no órdenes
+
+**Antes.** "Usar documentos en las respuestas" era una orden: encendido =
+siempre se mandaban fragmentos.
+
+**Ahora.** "Consultar mis documentos" y "Buscar en internet" son permisos. El
+usuario autoriza; el orquestador decide si hacen falta.
+
+**Detalle importante.** Un permiso apagado no se filtra *después*: la herramienta
+**no se le ofrece** al modelo, así que no puede pedirla. Es la diferencia entre
+pedir perdón y pedir permiso.
+
+---
+
+## D17 · El bucle tiene tope de vueltas
+
+Cuatro. En la última se le retiran las herramientas, así que no le queda más
+remedio que responder con lo que tenga.
+
+**Por qué.** Un modelo confundido puede pedir la misma herramienta
+indefinidamente, y cada vuelta es una llamada de pago que arrastra la
+conversación entera. Probado: un modelo en bucle se corta en la vuelta 4 y
+responde igualmente.
+
+Los fallos de herramienta no tumban la respuesta: se le devuelve el error al
+modelo como resultado y sigue. Una fuente caída degrada la respuesta; no la
+cancela.
+
+---
+
+## D18 · Se borró la heurística del modo AUTO
+
+AUTO enrutaba por capacidades: si la pregunta olía a tiempo real, iba al
+proveedor que sabía buscar en la web. **Ese trabajo desapareció** cuando la
+búsqueda pasó a ser herramienta: ahora todos los modelos pueden buscar.
+
+Se borró la heurística en vez de inventarle una tarea nueva. AUTO significa hoy
+"elige tú y aguanta si alguno se cae". Cuando los proveedores vuelvan a
+diferenciarse en algo medible (coste, ventana de contexto, calidad), ahí es donde
+irá la lógica.
+
+**Lección.** Una buena refactorización a veces **borra** código en otro sitio. Si
+un cambio solo añade, conviene sospechar.

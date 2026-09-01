@@ -56,10 +56,10 @@ export function subirDocumento(archivo) {
   return pedir("/api/documentos", { method: "POST", body: formulario });
 }
 
-export function preguntar({ pregunta, historial, usarDocumentos, modelo }) {
+export function preguntar({ pregunta, historial, permisos, modelo }) {
   return pedir("/api/preguntar", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ pregunta, historial, usarDocumentos, modelo }),
+    body: JSON.stringify({ pregunta, historial, permisos, modelo }),
   });
 }

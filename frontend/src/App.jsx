@@ -9,6 +9,20 @@ import { useEstadoSistema } from "./hooks/useEstadoSistema.js";
 import estilos from "./App.module.css";
 
 const CLAVE_MODELO = "mi-asistente-ia:modelo";
+const CLAVE_PERMISOS = "mi-asistente-ia:permisos";
+
+// Documentos apagado por defecto: son privados y el usuario decide.
+// Internet encendido: es el comportamiento que ya tenias, y ahora
+// beneficia a todos los modelos, no solo a Gemini.
+const PERMISOS_INICIALES = { documentos: false, web: true };
+
+function recuperarPermisos() {
+  try {
+    return { ...PERMISOS_INICIALES, ...JSON.parse(localStorage.getItem(CLAVE_PERMISOS)) };
+  } catch {
+    return PERMISOS_INICIALES;
+  }
+}
 
 /**
  * App solo COMPONE. No hace fetch, no habla con localStorage y no
@@ -18,7 +32,7 @@ const CLAVE_MODELO = "mi-asistente-ia:modelo";
  */
 export default function App() {
   const [pregunta, setPregunta] = useState("");
-  const [usarDocumentos, setUsarDocumentos] = useState(false);
+  const [permisos, setPermisos] = useState(recuperarPermisos);
   const [menuAbierto, setMenuAbierto] = useState(false);
 
   const [modelo, setModelo] = useState(
@@ -29,6 +43,14 @@ export default function App() {
   const documentos = useDocumentos();
   const { contexto, modelos, enLinea } = useEstadoSistema();
 
+  const cambiarPermiso = (clave, valor) => {
+    setPermisos((anteriores) => {
+      const siguientes = { ...anteriores, [clave]: valor };
+      localStorage.setItem(CLAVE_PERMISOS, JSON.stringify(siguientes));
+      return siguientes;
+    });
+  };
+
   const cambiarModelo = (nuevo) => {
     setModelo(nuevo);
     localStorage.setItem(CLAVE_MODELO, nuevo);
@@ -38,7 +60,7 @@ export default function App() {
     if (!texto.trim() || cargando) return;
 
     setPregunta("");
-    enviar(texto, { modelo, usarDocumentos });
+    enviar(texto, { modelo, permisos });
   };
 
   const modeloActual = modelos.find((opcion) => opcion.id === modelo);
@@ -52,8 +74,8 @@ export default function App() {
         onCambiarModelo={cambiarModelo}
         modelos={modelos}
         documentos={documentos.documentos}
-        usarDocumentos={usarDocumentos}
-        onCambiarUsarDocumentos={setUsarDocumentos}
+        permisos={permisos}
+        onCambiarPermiso={cambiarPermiso}
         onSubirDocumento={documentos.subir}
         subiendoDocumento={documentos.subiendo}
         errorDocumento={documentos.error}
@@ -85,12 +107,12 @@ export default function App() {
 
           <span className={estilos.barraTitulo}>Conversación</span>
 
-          {usarDocumentos && documentos.documentos.length > 0 && (
-            <span className={estilos.barraEtiqueta}>
-              {documentos.documentos.length} documento
-              {documentos.documentos.length === 1 ? "" : "s"} en contexto
-            </span>
-          )}
+          <span className={estilos.barraPermisos}>
+            {permisos.documentos && documentos.documentos.length > 0 && (
+              <span className={estilos.barraEtiqueta}>documentos</span>
+            )}
+            {permisos.web && <span className={estilos.barraEtiqueta}>internet</span>}
+          </span>
         </header>
 
         <Chat
